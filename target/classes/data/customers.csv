@@ -1,0 +1,16 @@
+id,firstName,lastName,email,country,purchaseAmount
+1,alex,jones,alex.jones@example.com,South Africa,120.50
+2,linda,smith,linda.smith@example.com,United Kingdom,340.10
+3,peter,nguyen,peter.nguyen@example.com,Vietnam,560.00
+4,maria,gomez,maria.gomez@example.com,Spain,90.00
+5,antoine,dupont,antoine.dupont@example.com,France,450.45
+6,emily,tan,emily.tan@example.com,Singapore,230.00
+7,john,doe,johndoe_at_example.com,USA,50.00
+8,sarah,otieno,sarah.otieno@example.com,Kenya,610.10
+9,miles,chan,miles.chan@example.com,Australia,-15.00
+10,priya,patel,priya.patel@example.com,India,780.25
+11,luca,rossi,luca.rossi@example.com,Italy,320.00
+12,emma,larsson,emma.larsson@example.com,Sweden,445.75
+13,noah,schmidt,noah.schmidt@example.com,Germany,290.50
+14,ava,ivanov,ava.ivanov@example.com,Russia,150.00
+15,mia,kim,mia.kim@example.com,South Korea,675.30

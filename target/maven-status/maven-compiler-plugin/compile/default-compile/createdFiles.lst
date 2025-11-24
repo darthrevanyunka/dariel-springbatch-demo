@@ -1,0 +1,6 @@
+com/dariel/batchdemo/domain/Customer.class
+com/dariel/batchdemo/processing/CustomerProcessor.class
+com/dariel/batchdemo/monitoring/ChunkLoggingListener.class
+com/dariel/batchdemo/config/BatchJobConfig$1.class
+com/dariel/batchdemo/SpringBatchDemoApplication.class
+com/dariel/batchdemo/config/BatchJobConfig.class

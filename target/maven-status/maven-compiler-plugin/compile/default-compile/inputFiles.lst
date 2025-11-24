@@ -1,0 +1,5 @@
+/Users/jurgenroos/workspace/dariel-springbatch-demo/src/main/java/com/dariel/batchdemo/config/BatchJobConfig.java
+/Users/jurgenroos/workspace/dariel-springbatch-demo/src/main/java/com/dariel/batchdemo/domain/Customer.java
+/Users/jurgenroos/workspace/dariel-springbatch-demo/src/main/java/com/dariel/batchdemo/monitoring/ChunkLoggingListener.java
+/Users/jurgenroos/workspace/dariel-springbatch-demo/src/main/java/com/dariel/batchdemo/processing/CustomerProcessor.java
+/Users/jurgenroos/workspace/dariel-springbatch-demo/src/main/java/com/dariel/batchdemo/SpringBatchDemoApplication.java

@@ -1,0 +1,50 @@
+direction: right
+
+title: "Spring Batch Simple Demo - How It Works"
+
+note1: {
+  shape: text
+  label: "Spring Batch processes data in 3 steps:\n1. READ from source\n2. PROCESS each item\n3. WRITE to destination\n\nItems are processed in CHUNKS (batches) for efficiency."
+}
+
+CSV: {
+  shape: cylinder
+  label: "CSV File\ncustomers.csv\n(15 rows)"
+}
+
+Step: {
+  shape: rectangle
+  style.fill: "#e1f5ff"
+  label: "processStep\n(Chunk size: 25)"
+  
+  Reader: {
+    label: "READER\nFlatFileItemReader\nReads CSV line by line"
+    style.fill: "#fff4e1"
+  }
+  
+  Processor: {
+    label: "PROCESSOR\nCustomerProcessor\nValidates & cleans data\nReturns null to skip invalid records"
+    style.fill: "#ffe1f5"
+  }
+  
+  Writer: {
+    label: "WRITER\nJdbcBatchItemWriter\nWrites to database\nin batches of 25"
+    style.fill: "#e1ffe1"
+  }
+}
+
+Database: {
+  shape: cylinder
+  label: "H2 Database\ncustomers table\n(13 valid records)"
+}
+
+CSV -> Step.Reader
+Step.Reader -> Step.Processor
+Step.Processor -> Step.Writer
+Step.Writer -> Database
+
+note2: {
+  shape: text
+  label: "Example:\n- CSV has 15 rows\n- 2 rows are invalid (bad email, negative amount)\n- 13 valid customers written to database\n- Names capitalized, countries uppercased"
+}
+
