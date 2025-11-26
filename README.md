@@ -1,122 +1,314 @@
-# Spring Batch Simple Demo
+# Spring Batch Demo
 
-A simple Spring Batch application to demonstrate the core concepts: **READ → PROCESS → WRITE**.
+A comprehensive Spring Batch demonstration with **two tutorials**: a simple basics tutorial and an advanced example showcasing real-world patterns.
 
-## What This Demo Does
+## 🎯 Two Tutorials
 
-1. **READ**: Reads customer data from a CSV file (`customers.csv`)
-2. **PROCESS**: Validates and cleans the data (capitalizes names, uppercases countries, filters invalid records)
-3. **WRITE**: Writes valid customers to a database table
+This project contains two separate demos:
 
-## Key Concepts
+1. **Basics Tutorial** - The simplest possible Spring Batch example (CSV → CSV)
+2. **Advanced Demo** - Real-world patterns with database, aggregation, and multiple steps
 
-### Spring Batch Pattern
+---
 
-```
-CSV File → Reader → Processor → Writer → Database
-```
+## 📚 Tutorial 1: Basics (Simple CSV → CSV)
 
-- **Reader**: Reads data from a source (CSV, database, etc.)
-- **Processor**: Transforms/validates each item (can return `null` to skip items)
-- **Writer**: Writes processed items to a destination (database, file, etc.)
+**Perfect for beginners!** This demonstrates the core Spring Batch pattern: **READ → PROCESS → WRITE**
 
-### Chunk Processing
-
-Items are processed in **chunks** (batches) for efficiency:
-- Chunk size: 25 items
-- Spring Batch reads 25 items, processes them, then writes all 25 to the database at once
-- This is much faster than processing one item at a time!
-
-## Project Structure
+### What It Does
 
 ```
-src/main/java/com/dariel/batchdemo/
-├── config/
-│   └── BatchJobConfig.java          # Main configuration - defines the job
-├── domain/
-│   └── Customer.java                # Simple Customer data model
-├── processing/
-│   └── CustomerProcessor.java       # Validates and cleans customer data
-└── monitoring/
-    └── ChunkLoggingListener.java    # Logs progress for each chunk
-
-src/main/resources/
-├── data/
-│   └── customers.csv                # Input CSV file (15 rows)
-└── schema.sql                       # Database table definition
+input.csv → Reader → Processor → Writer → output.csv
 ```
 
-## Running the Application
+1. **READ**: Reads `Person` objects from `basics/input.csv`
+2. **PROCESS**: Uppercases the names (processor is optional!)
+3. **WRITE**: Writes processed data to `basics-output.csv`
 
-### Run Tests
-```bash
-mvn test
-```
+### Key Concepts
 
-### Run the Application
+- **Reader**: Reads data from a source (CSV file)
+- **Processor**: Transforms/validates each item (OPTIONAL - can skip it!)
+- **Writer**: Writes processed items to a destination
+- **Chunk Processing**: Processes items in batches (10 at a time) for efficiency
+
+### Running the Basics Tutorial
+
+**By default, both jobs run automatically!** Simply run:
+
 ```bash
 mvn spring-boot:run
 ```
 
-The batch job will automatically run on startup and process the CSV file.
+The basics job runs first, followed by the advanced job.
 
-## Understanding the Code
+**To run only the basics job**, see the "Running Individual Jobs" section below.
 
-### 1. BatchJobConfig.java
-This is where everything is configured:
-- Defines the **Job** (the overall batch process)
-- Defines the **Step** (READ → PROCESS → WRITE)
-- Configures the **Reader**, **Processor**, and **Writer**
+**Check output**: Look for `basics-output.csv` in the project root
 
-### 2. CustomerProcessor.java
-This is where the business logic lives:
-- Validates email addresses (must contain "@")
-- Validates purchase amounts (must be positive)
-- Capitalizes names
-- Uppercases countries
-- Returns `null` to skip invalid records
-
-### 3. Customer.java
-Simple data model with:
-- id, firstName, lastName, email, country, purchaseAmount
-- Getters and setters (required for Spring Batch)
-
-## Example Output
-
-When you run the application, you'll see logs like:
+### Project Structure
 
 ```
-[processStep] Starting chunk #1
-[processStep] Completed chunk #1 | read=15, written=13, skipped=0
+src/main/java/com/dariel/batchdemo/basics/
+├── domain/
+│   └── Person.java              # Simple domain: firstName, lastName
+├── processing/
+│   └── PersonProcessor.java     # Transforms names to uppercase
+└── config/
+    └── BasicsJobConfig.java     # Defines job, step, reader, processor, writer
+
+src/main/resources/basics/
+└── input.csv                    # Input file (5 people)
 ```
 
-This means:
-- Read 15 rows from CSV
-- Wrote 13 valid customers to database
-- 2 records were invalid and skipped (bad email or negative amount)
+### Learn More
 
-## CSV Data
+See [BASICS_TUTORIAL.md](BASICS_TUTORIAL.md) for detailed explanation.
 
-The `customers.csv` file contains 15 rows:
-- 13 valid customers (will be written to database)
-- 2 invalid customers (row 7: bad email, row 9: negative amount)
+---
 
-## Database
+## 🚀 Tutorial 2: Advanced (Database & Aggregation)
 
-Uses H2 in-memory database. After running, you can check the results:
-- Table: `customers`
-- Contains 13 valid customer records
-- Names are capitalized, countries are uppercased
+**Real-world patterns!** This demonstrates:
+- Database integration (reading from and writing to database)
+- Multiple steps in a job
+- Data aggregation
+- Complex processing with filtering
 
-## Next Steps
+### What It Does
 
-Try modifying:
-1. **Chunk size** in `BatchJobConfig.java` (try 5 or 50)
-2. **Validation rules** in `CustomerProcessor.java`
-3. **CSV data** in `customers.csv`
-4. **Database schema** in `schema.sql`
+**Step 1: CSV → Database**
+```
+customers.csv → Reader → Processor → Writer → Database
+```
+- Reads 10,000+ customer records from CSV
+- Validates and cleans data (filters invalid emails, negative amounts)
+- Writes valid customers to database
 
-## Diagram
+**Step 2: Database → Aggregation → CSV**
+```
+Database → Aggregate Reader → Processor → Writer → country-statistics.csv
+```
+- Reads all customers from database
+- Aggregates by country (count, total revenue, average purchase)
+- Writes statistics to CSV file
 
-See `docs/spring-batch-simple.d2` for a visual diagram of how the batch job works.
+### Key Concepts
+
+- **Multiple Steps**: A job can have multiple steps that run sequentially
+- **Custom Reader**: `CountryStatisticsReader` performs aggregation before returning items
+- **Chunk Processing**: Even with aggregation, Spring Batch processes in chunks (10 items at a time)
+- **Database Integration**: Using `JdbcCursorItemReader` and `JdbcBatchItemWriter`
+
+### Running the Advanced Demo
+
+**By default, both jobs run automatically!** Simply run:
+
+```bash
+mvn spring-boot:run
+```
+
+The advanced job runs after the basics job completes.
+
+**To run only the advanced job**, see the "Running Individual Jobs" section below.
+
+**Check output**: Look for `country-statistics.csv` in the project root
+
+### Project Structure
+
+```
+src/main/java/com/dariel/batchdemo/advanced/
+├── config/
+│   └── BatchJobConfig.java          # Defines both steps and the job
+├── domain/
+│   ├── Customer.java                # Customer data model
+│   └── CountryStatistics.java       # Aggregated statistics model
+├── processing/
+│   ├── CustomerProcessor.java       # Validates and cleans customers
+│   ├── CountryStatisticsReader.java # Custom reader with aggregation
+│   ├── CountryStatisticsProcessor.java
+│   └── CountryStatisticsWriter.java
+└── monitoring/
+    ├── DemoJobExecutionListener.java    # Job-level logging
+    ├── DemoStepExecutionListener.java   # Step-level logging
+    └── ChunkLoggingListener.java        # Chunk-level logging
+
+src/main/resources/
+├── data/
+│   └── customers.csv                # Input CSV (10,000+ records)
+└── schema.sql                       # Database table definitions
+```
+
+### Example Output
+
+```
+🚀 BATCH JOB STARTING
+═══════════════════════════════════════════════════════════════════
+   Job: customerJob
+
+───────────────────────────────────────────────────────────────────
+▶ STEP: processStep
+───────────────────────────────────────────────────────────────────
+  📦 Processing chunk #1...
+  ✓ Chunk #1 completed | Read: 25, Written: 25, Skipped: 0
+  ...
+
+───────────────────────────────────────────────────────────────────
+▶ STEP: aggregateStep
+───────────────────────────────────────────────────────────────────
+  📊 Reading all customers from database and aggregating by country...
+  ✓ Read 9197 customers, aggregated into 41 countries
+  📦 Processing chunk #1...
+  💾 Writer.write() called with 10 items (chunk size reached!)
+  ...
+
+✅ BATCH JOB COMPLETED
+═══════════════════════════════════════════════════════════════════
+   Duration: 671 ms
+
+📊 SUMMARY STATISTICS
+───────────────────────────────────────────────────────────────────
+   Total Steps: 2
+
+   📋 Step: processStep
+      • Read:         10,001 items
+      • Written:       9,197 items
+      • Skipped:           0 items
+      • Filtered:        804 items
+      • Duration:        639 ms
+
+   📋 Step: aggregateStep
+      • Read:             41 items
+      • Written:          41 items
+      • Skipped:           0 items
+      • Filtered:          0 items
+      • Duration:         25 ms
+```
+
+---
+
+## 🎓 Key Spring Batch Concepts
+
+### The Core Pattern: READ → PROCESS → WRITE
+
+```
+Source → Reader → Processor → Writer → Destination
+```
+
+- **Reader**: Reads items from a source (CSV, database, etc.)
+- **Processor**: Transforms/validates items (OPTIONAL - can return `null` to skip)
+- **Writer**: Writes items to a destination (CSV, database, etc.)
+
+### Chunk Processing
+
+Spring Batch processes items in **chunks** (batches) for efficiency:
+- Reads multiple items (chunk size)
+- Processes them
+- Writes them all at once
+- Much faster than one-at-a-time processing!
+
+### Jobs and Steps
+
+- **Job**: The overall batch process (can have multiple steps)
+- **Step**: A single READ → PROCESS → WRITE operation
+- Steps run sequentially within a job
+
+---
+
+## 🚀 Running the Application
+
+### Default Behavior (Both Jobs)
+
+By default, **both jobs run automatically** when you start the application:
+
+```bash
+mvn spring-boot:run
+```
+
+This runs:
+1. `basicsJob` - Simple CSV → CSV example
+2. `customerJob` - Advanced database & aggregation example
+
+### Running Individual Jobs
+
+To run **only one job**, you have two options:
+
+**Option 1: Modify the CommandLineRunner** (in `SpringBatchDemoApplication.java`)
+- Comment out the job you don't want to run
+
+**Option 2: Use application.yml configuration**
+- Set `spring.batch.job.enabled: false` in `application.yml`
+- Configure which job to run:
+  ```yaml
+  spring:
+    batch:
+      job:
+        names: basicsJob  # or customerJob, or basicsJob,customerJob
+        enabled: true
+  ```
+- Remove or comment out the `CommandLineRunner` bean in `SpringBatchDemoApplication.java`
+
+---
+
+## 📁 Project Structure
+
+```
+src/main/java/com/dariel/batchdemo/
+├── basics/                          # Simple CSV → CSV tutorial
+│   ├── config/
+│   ├── domain/
+│   └── processing/
+├── advanced/                        # Advanced database & aggregation demo
+│   ├── config/
+│   ├── domain/
+│   ├── processing/
+│   └── monitoring/
+└── SpringBatchDemoApplication.java  # Main application
+
+src/main/resources/
+├── basics/
+│   └── input.csv                   # Basics tutorial input
+├── data/
+│   └── customers.csv               # Advanced demo input (10k+ records)
+├── application.yml                 # Configuration
+└── schema.sql                      # Database schema
+```
+
+---
+
+## 🛠️ Prerequisites
+
+- Java 17+
+- Maven 3.6+
+
+## 📦 Running the Application
+
+```bash
+# Run tests
+mvn test
+
+# Run the application
+mvn spring-boot:run
+```
+
+## 📚 Documentation
+
+- [BASICS_TUTORIAL.md](BASICS_TUTORIAL.md) - Detailed basics tutorial guide
+- [BASICS_QUICK_START.md](BASICS_QUICK_START.md) - Quick start for basics
+- `docs/` - Visual diagrams of Spring Batch architecture
+
+## 🎯 Learning Path
+
+1. **Start with Basics**: Understand READ → PROCESS → WRITE with simple CSV files
+2. **Move to Advanced**: See real-world patterns with database and aggregation
+3. **Experiment**: Modify chunk sizes, add processors, change data sources
+
+## 💡 Key Takeaways
+
+1. **Reader** = Read from source
+2. **Processor** = Transform/validate (OPTIONAL!)
+3. **Writer** = Write to destination
+4. **Chunk processing** = Process multiple items at once (efficient!)
+5. **Jobs can have multiple steps** = Chain operations together
+6. **Custom readers** = Perform complex operations like aggregation
 

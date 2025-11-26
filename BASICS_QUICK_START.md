@@ -15,23 +15,17 @@ input.csv → READER → PROCESSOR → WRITER → output.csv
 
 ## Running the Basics Tutorial
 
-### 1. Switch to basics job
+### 1. Run it
 
-Edit `src/main/resources/application.yml`:
-```yaml
-spring:
-  batch:
-    job:
-      name: basicsJob  # ← Make sure this is set
-      enabled: true
-```
+By default, the application runs **both** jobs (basics and advanced) sequentially:
 
-### 2. Run it
 ```bash
 mvn spring-boot:run
 ```
 
-### 3. Check the output
+The basics job will run first, followed by the advanced job.
+
+### 2. Check the output
 
 Look for `basics-output.csv` in the project root. You'll see:
 - Input: `Jill,Doe` → Output: `JILL,DOE` (names are uppercased!)
@@ -75,9 +69,23 @@ public Step basicsStep(...) {
 2. **Change chunk size**: Change `chunk(10, ...)` to `chunk(5, ...)` - processes 5 at a time
 3. **Skip items**: Make processor return `null` for some items - they won't be written
 
+## Running Just the Basics Job
+
+To run **only** the basics job, you can:
+1. Modify `SpringBatchDemoApplication.java` to comment out the advanced job execution, OR
+2. Configure `application.yml`:
+   ```yaml
+   spring:
+     batch:
+       job:
+         names: basicsJob
+         enabled: true
+   ```
+   Then remove/comment the `CommandLineRunner` bean.
+
 ## Next: Advanced Demo
 
-Once they understand this, switch to `customerJob` in `application.yml` to see:
+Once they understand this, the advanced job (`customerJob`) runs automatically after the basics job! It demonstrates:
 - Database integration
 - Multiple steps
 - Aggregation
