@@ -26,7 +26,7 @@ class SpringBatchDemoApplicationTests {
 
     @Test
     void customerJob_processesCsvAndWritesToDatabase() throws Exception {
-        // Launch the batch job
+        // Launch the batch job (now includes both steps)
         JobExecution execution = jobLauncherTestUtils.launchJob(
                 new JobParametersBuilder()
                         .addLong("timestamp", System.currentTimeMillis())
@@ -36,11 +36,11 @@ class SpringBatchDemoApplicationTests {
         // Verify job completed successfully
         assertThat(execution.getExitStatus().getExitCode()).isEqualTo("COMPLETED");
 
-        // Verify data was written to database
+        // Verify Step 1: data was written to customers table
         // We have 15 rows in CSV, but 2 are invalid (row 7 has bad email, row 9 has negative amount)
         // So we should have 13 valid customers in the database
-        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM customers", Integer.class);
-        assertThat(count).isEqualTo(13);
+        Integer customerCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM customers", Integer.class);
+        assertThat(customerCount).isEqualTo(13);
 
         // Verify some data was processed correctly
         // Names should be capitalized, country should be uppercase
@@ -51,5 +51,21 @@ class SpringBatchDemoApplicationTests {
         String country = jdbcTemplate.queryForObject(
                 "SELECT country FROM customers WHERE id = 1", String.class);
         assertThat(country).isEqualTo("SOUTH AFRICA"); // Should be uppercase
+
+        // Verify Step 2: country statistics were aggregated and written
+        Integer statsCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM country_statistics", Integer.class);
+        assertThat(statsCount).isGreaterThan(0); // Should have at least one country
+
+        // Verify statistics are correct - check one country's stats
+        // We know SOUTH AFRICA has at least 1 customer (id=1)
+        Long southAfricaCount = jdbcTemplate.queryForObject(
+                "SELECT customer_count FROM country_statistics WHERE country = 'SOUTH AFRICA'", Long.class);
+        assertThat(southAfricaCount).isGreaterThanOrEqualTo(1L);
+
+        // Verify statistics have valid values
+        Double totalRevenue = jdbcTemplate.queryForObject(
+                "SELECT total_revenue FROM country_statistics WHERE country = 'SOUTH AFRICA'", Double.class);
+        assertThat(totalRevenue).isNotNull();
+        assertThat(totalRevenue).isGreaterThanOrEqualTo(0.0);
     }
 }

@@ -1,4 +1,4 @@
-package com.dariel.batchdemo.domain;
+package com.dariel.batchdemo.advanced.domain;
 
 /**
  * Simple Customer domain object representing a customer record.

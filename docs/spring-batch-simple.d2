@@ -1,10 +1,10 @@
 direction: right
 
-title: "Spring Batch Simple Demo - How It Works"
+title: "Spring Batch Intermediate Demo - Two-Step Job Flow"
 
 note1: {
   shape: text
-  label: "Spring Batch processes data in 3 steps:\n1. READ from source\n2. PROCESS each item\n3. WRITE to destination\n\nItems are processed in CHUNKS (batches) for efficiency."
+  label: "Spring Batch processes data in 3 steps per job step:\n1. READ from source\n2. PROCESS each item\n3. WRITE to destination\n\nItems are processed in CHUNKS (batches) for efficiency.\n\nThis job has TWO steps that run sequentially."
 }
 
 CSV: {
@@ -12,39 +12,70 @@ CSV: {
   label: "CSV File\ncustomers.csv\n(15 rows)"
 }
 
-Step: {
+Step1: {
   shape: rectangle
   style.fill: "#e1f5ff"
-  label: "processStep\n(Chunk size: 25)"
+  label: "Step 1: processStep\n(Chunk size: 25)"
   
-  Reader: {
+  Reader1: {
     label: "READER\nFlatFileItemReader\nReads CSV line by line"
     style.fill: "#fff4e1"
   }
   
-  Processor: {
+  Processor1: {
     label: "PROCESSOR\nCustomerProcessor\nValidates & cleans data\nReturns null to skip invalid records"
     style.fill: "#ffe1f5"
   }
   
-  Writer: {
+  Writer1: {
     label: "WRITER\nJdbcBatchItemWriter\nWrites to database\nin batches of 25"
     style.fill: "#e1ffe1"
   }
 }
 
-Database: {
+CustomersTable: {
   shape: cylinder
   label: "H2 Database\ncustomers table\n(13 valid records)"
 }
 
-CSV -> Step.Reader
-Step.Reader -> Step.Processor
-Step.Processor -> Step.Writer
-Step.Writer -> Database
+Step2: {
+  shape: rectangle
+  style.fill: "#ffe1f5"
+  label: "Step 2: aggregateStep\n(Chunk size: 10)\nADVANCED"
+  
+  Reader2: {
+    label: "READER\nCountryStatisticsReader\nReads from database\nAggregates by country\nCalculates statistics"
+    style.fill: "#fff4e1"
+  }
+  
+  Processor2: {
+    label: "PROCESSOR\nCountryStatisticsProcessor\nFilters & rounds values\nApplies business rules"
+    style.fill: "#ffe1f5"
+  }
+  
+  Writer2: {
+    label: "WRITER\nJdbcBatchItemWriter\nWrites aggregated stats\nto country_statistics table"
+    style.fill: "#e1ffe1"
+  }
+}
+
+StatsTable: {
+  shape: cylinder
+  label: "H2 Database\ncountry_statistics table\n(Aggregated by country)"
+}
+
+CSV -> Step1.Reader1
+Step1.Reader1 -> Step1.Processor1
+Step1.Processor1 -> Step1.Writer1
+Step1.Writer1 -> CustomersTable
+
+CustomersTable -> Step2.Reader2
+Step2.Reader2 -> Step2.Processor2
+Step2.Processor2 -> Step2.Writer2
+Step2.Writer2 -> StatsTable
 
 note2: {
   shape: text
-  label: "Example:\n- CSV has 15 rows\n- 2 rows are invalid (bad email, negative amount)\n- 13 valid customers written to database\n- Names capitalized, countries uppercased"
+  label: "Step 1 (Simple):\n- CSV has 15 rows\n- 2 rows are invalid (bad email, negative amount)\n- 13 valid customers written to database\n- Names capitalized, countries uppercased\n\nStep 2 (Advanced):\n- Reads all customers from database\n- Groups by country\n- Calculates: customer count, total revenue, average purchase\n- Writes statistics to country_statistics table"
 }
 

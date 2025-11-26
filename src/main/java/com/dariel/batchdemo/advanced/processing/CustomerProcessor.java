@@ -1,6 +1,6 @@
-package com.dariel.batchdemo.processing;
+package com.dariel.batchdemo.advanced.processing;
 
-import com.dariel.batchdemo.domain.Customer;
+import com.dariel.batchdemo.advanced.domain.Customer;
 import org.springframework.batch.item.ItemProcessor;
 
 /**

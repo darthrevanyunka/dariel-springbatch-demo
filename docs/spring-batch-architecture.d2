@@ -1,0 +1,108 @@
+direction: right
+
+title: "Spring Batch Architecture - High Level Overview"
+
+note1: {
+  shape: text
+  label: "Spring Batch processes data in a structured, scalable way.\n\nA JOB contains one or more STEPS.\nEach STEP contains a READER, PROCESSOR, and WRITER.\n\nSteps execute sequentially, one after another."
+}
+
+Job: {
+  shape: rectangle
+  style.fill: "#4a90e2"
+  style.stroke: "#2c5aa0"
+  style.stroke-width: 3
+  label: "JOB\n\nA Job is a complete batch process.\nIt defines the overall workflow.\n\nExample: customerJob\n- Runs multiple steps\n- Can be executed multiple times\n- Tracks execution history"
+  
+  Step1: {
+    shape: rectangle
+    style.fill: "#7bb3f0"
+    style.stroke: "#4a90e2"
+    style.stroke-width: 2
+    label: "STEP 1\n\nA Step is a single unit of work.\nIt processes data in chunks.\n\nExample: processStep\n- Chunk size: 25 items\n- Processes items in batches\n- Can be retried on failure"
+    
+    Reader1: {
+      shape: rectangle
+      style.fill: "#fff4e1"
+      style.stroke: "#e6a857"
+      label: "READER\n\nReads data from source:\n- Files (CSV, XML, JSON)\n- Databases\n- APIs\n- Message queues\n\nOutput: Items (one at a time)"
+    }
+    
+    Processor1: {
+      shape: rectangle
+      style.fill: "#ffe1f5"
+      style.stroke: "#d473a3"
+      label: "PROCESSOR\n\nTransforms/validates items:\n- Business logic\n- Data validation\n- Data transformation\n- Filtering (return null)\n\nInput: Item from Reader\nOutput: Transformed item"
+    }
+    
+    Writer1: {
+      shape: rectangle
+      style.fill: "#e1ffe1"
+      style.stroke: "#5cb85c"
+      label: "WRITER\n\nWrites items to destination:\n- Databases\n- Files\n- APIs\n- Message queues\n\nInput: Chunk of items\nOutput: Written to destination"
+    }
+  }
+  
+  Step2: {
+    shape: rectangle
+    style.fill: "#7bb3f0"
+    style.stroke: "#4a90e2"
+    style.stroke-width: 2
+    label: "STEP 2\n\nSteps run sequentially.\nStep 2 starts after Step 1 completes.\n\nExample: aggregateStep\n- Chunk size: 10 items\n- Depends on Step 1 data"
+    
+    Reader2: {
+      shape: rectangle
+      style.fill: "#fff4e1"
+      style.stroke: "#e6a857"
+      label: "READER\n\nReads from previous step's output\nor another data source"
+    }
+    
+    Processor2: {
+      shape: rectangle
+      style.fill: "#ffe1f5"
+      style.stroke: "#d473a3"
+      label: "PROCESSOR\n\nApplies business logic\nto transform data"
+    }
+    
+    Writer2: {
+      shape: rectangle
+      style.fill: "#e1ffe1"
+      style.stroke: "#5cb85c"
+      label: "WRITER\n\nWrites processed items\nto final destination"
+    }
+  }
+}
+
+DataSource1: {
+  shape: cylinder
+  style.fill: "#f0f0f0"
+  label: "Data Source\n(CSV, Database, API, etc.)"
+}
+
+DataSource2: {
+  shape: cylinder
+  style.fill: "#f0f0f0"
+  label: "Data Destination\n(Database, File, API, etc.)"
+}
+
+DataSource3: {
+  shape: cylinder
+  style.fill: "#f0f0f0"
+  label: "Final Destination\n(Database, File, API, etc.)"
+}
+
+DataSource1 -> Job.Step1.Reader1
+Job.Step1.Reader1 -> Job.Step1.Processor1
+Job.Step1.Processor1 -> Job.Step1.Writer1
+Job.Step1.Writer1 -> DataSource2
+
+DataSource2 -> Job.Step2.Reader2
+Job.Step2.Reader2 -> Job.Step2.Processor2
+Job.Step2.Processor2 -> Job.Step2.Writer2
+Job.Step2.Writer2 -> DataSource3
+
+note2: {
+  shape: text
+  label: "Key Concepts:\n\n1. JOB = Complete batch process\n   - Contains one or more steps\n   - Can be scheduled or triggered\n   - Tracks execution metadata\n\n2. STEP = Single unit of work\n   - Contains reader, processor, writer\n   - Processes data in chunks\n   - Can be retried on failure\n\n3. CHUNK = Batch of items\n   - Read N items\n   - Process N items\n   - Write N items atomically\n   - Improves performance\n\n4. READER → PROCESSOR → WRITER\n   - Data flows in one direction\n   - Each component has a specific role\n   - Works together atomically per chunk"
+}
+

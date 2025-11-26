@@ -11,8 +11,8 @@ spring:
       enabled: true
   batch:
     job:
-      name: customerJob
-      enabled: true
+      # Disable auto-execution - we'll run both jobs manually via CommandLineRunner
+      enabled: false
   sql:
     init:
       mode: always
@@ -20,5 +20,13 @@ spring:
 
 logging:
   level:
-    org.springframework.batch: INFO
+    org.springframework.batch: WARN
+    org.springframework.boot.autoconfigure.batch: WARN
+    org.springframework.batch.core.launch: WARN
+    org.springframework.batch.core.job: WARN
+    org.springframework.batch.core.step: WARN
+    com.dariel.batchdemo: INFO
+    root: INFO
+  pattern:
+    console: "%msg%n"
 

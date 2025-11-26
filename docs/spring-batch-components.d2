@@ -1,0 +1,95 @@
+direction: right
+
+title: "Spring Batch Components - Reader, Processor, Writer Details"
+
+note1: {
+  shape: text
+  label: "Each component in a Spring Batch Step has specific responsibilities.\n\nAll three work together ATOMICALLY per chunk:\n- If any item in a chunk fails, the entire chunk is rolled back\n- This ensures data consistency"
+}
+
+ChunkProcessing: {
+  shape: rectangle
+  style.fill: "#e8f4f8"
+  style.stroke: "#4a90e2"
+  style.stroke-width: 2
+  label: "CHUNK PROCESSING (Atomic Unit)\n\nExample: Chunk Size = 25\n\n1. READ 25 items\n2. PROCESS 25 items\n3. WRITE 25 items\n\nIf ANY item fails →\nENTIRE chunk is rolled back\n\nAll 25 items succeed →\nAll 25 items are committed"
+  
+  ReaderBox: {
+    shape: rectangle
+    style.fill: "#fff4e1"
+    style.stroke: "#e6a857"
+    style.stroke-width: 2
+    label: "READER\n\nRole: Read data from source\n\nInput:\n- Data source (file, DB, API)\n- Current position/state\n\nOutput:\n- One item at a time\n- Returns null when done\n\nCharacteristics:\n- Stateless or stateful\n- Can be restarted\n- Tracks read position\n\nExample:\nFlatFileItemReader\n- Reads CSV line by line\n- Tracks line number\n- Can resume after failure"
+    
+    ReaderInput: {
+      shape: cylinder
+      style.fill: "#f0f0f0"
+      label: "Input Source\nCSV File\nDatabase\nAPI\nMessage Queue"
+    }
+    
+    ReaderOutput: {
+      shape: rectangle
+      style.fill: "#fff9e6"
+      label: "Output: Item\n\nOne item per read() call\n\nExample:\nCustomer object\nwith id, name, email..."
+    }
+  }
+  
+  ProcessorBox: {
+    shape: rectangle
+    style.fill: "#ffe1f5"
+    style.stroke: "#d473a3"
+    style.stroke-width: 2
+    label: "PROCESSOR\n\nRole: Transform/validate items\n\nInput:\n- One item from Reader\n\nOutput:\n- Transformed item (to Writer)\n- null (to skip/filter item)\n\nCharacteristics:\n- Stateless (usually)\n- Can filter items\n- Applies business logic\n\nExample:\nCustomerProcessor\n- Validates email format\n- Capitalizes names\n- Returns null for invalid data\n- Transforms data structure"
+    
+    ProcessorInput: {
+      shape: rectangle
+      style.fill: "#fff9e6"
+      label: "Input: Item\n\nFrom Reader\n\nExample:\nCustomer object"
+    }
+    
+    ProcessorOutput: {
+      shape: rectangle
+      style.fill: "#ffe6f0"
+      label: "Output: Item or null\n\nTransformed item → Writer\nnull → Skip this item\n\nExample:\nValidated Customer\nor null (if invalid)"
+    }
+  }
+  
+  WriterBox: {
+    shape: rectangle
+    style.fill: "#e1ffe1"
+    style.stroke: "#5cb85c"
+    style.stroke-width: 2
+    label: "WRITER\n\nRole: Write items to destination\n\nInput:\n- Chunk of items (List)\n- All items from one chunk\n\nOutput:\n- Items written to destination\n- All or nothing (atomic)\n\nCharacteristics:\n- Writes in batches\n- Atomic operation\n- All items succeed or all fail\n\nExample:\nJdbcBatchItemWriter\n- Writes 25 items in one SQL batch\n- Uses JDBC batch insert\n- Much faster than individual writes\n- Transactional"
+    
+    WriterInput: {
+      shape: rectangle
+      style.fill: "#ffe6f0"
+      label: "Input: Chunk (List)\n\nAll processed items\nfrom one chunk\n\nExample:\nList<Customer>\n(25 items)"
+    }
+    
+    WriterOutput: {
+      shape: cylinder
+      style.fill: "#f0f0f0"
+      label: "Output: Written Data\n\nDatabase Table\nFile\nAPI\nMessage Queue"
+    }
+  }
+}
+
+AtomicityNote: {
+  shape: text
+  style.fill: "#fff3cd"
+  style.stroke: "#ffc107"
+  style.stroke-width: 2
+  label: "ATOMICITY GUARANTEE\n\nEach chunk is processed atomically:\n\n✓ READ: Read chunk of items\n✓ PROCESS: Process all items\n✓ WRITE: Write all items in one transaction\n\nIf ANY step fails:\n→ Entire chunk is rolled back\n→ No partial data written\n→ Can retry the chunk\n\nThis ensures:\n- Data consistency\n- No duplicate writes\n- Reliable processing"
+}
+
+ChunkProcessing.ReaderBox.ReaderInput -> ChunkProcessing.ReaderBox.ReaderOutput
+ChunkProcessing.ReaderBox.ReaderOutput -> ChunkProcessing.ProcessorBox.ProcessorInput
+ChunkProcessing.ProcessorBox.ProcessorOutput -> ChunkProcessing.WriterBox.WriterInput
+ChunkProcessing.WriterBox.WriterOutput
+
+note2: {
+  shape: text
+  label: "Processing Flow:\n\n1. READER.read()\n   - Called repeatedly\n   - Returns one item per call\n   - Returns null when done\n   - Example: Read 25 Customer objects\n\n2. PROCESSOR.process(item)\n   - Called for each item from reader\n   - Can transform or filter\n   - Returns item or null\n   - Example: Validate 25 customers, filter 2 invalid\n\n3. WRITER.write(chunk)\n   - Called once per chunk\n   - Receives ALL processed items\n   - Writes atomically\n   - Example: Write 23 valid customers in one batch\n\nIf writer fails:\n- All 23 writes are rolled back\n- Chunk can be retried\n- No partial data in database"
+}
+
