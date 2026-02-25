@@ -1068,17 +1068,38 @@ class BatchIntegrationTest {
 <script>
   document.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
 
+  // ── Slide engine ────────────────────────────────────────────
   const slides  = Array.from(document.querySelectorAll('.slide'));
   const counter = document.getElementById('counter');
   const bar     = document.getElementById('progress');
-  let cur = 0;
+  let cur  = 0;
+  let busy = false;
 
   function go(n) {
-    slides[cur].classList.remove('active');
-    cur = Math.max(0, Math.min(slides.length - 1, n));
-    slides[cur].classList.add('active');
+    if (busy) return;
+    const target = Math.max(0, Math.min(slides.length - 1, n));
+    if (target === cur) return;
+
+    busy = true;
+    const from       = slides[cur];
+    const to         = slides[target];
+    const fwd        = target > cur;
+    const fromTitle  = (cur === 0 && fwd);   // special "launch" from title
+
+    cur = target;
     counter.textContent = (cur + 1) + ' / ' + slides.length;
     bar.style.width = ((cur + 1) / slides.length * 100) + '%';
+
+    from.classList.add(fromTitle ? 'exit-launch' : (fwd ? 'exit-fwd' : 'exit-bwd'));
+    to.classList.add  (fromTitle ? 'enter-rise'  : (fwd ? 'enter-fwd' : 'enter-bwd'));
+
+    setTimeout(() => {
+      from.classList.remove('active', 'exit-launch', 'exit-fwd', 'exit-bwd');
+      from.style.display = '';
+      to.classList.remove('enter-rise', 'enter-fwd', 'enter-bwd');
+      to.classList.add('active');
+      busy = false;
+    }, fromTitle ? 680 : 480);
   }
 
   document.getElementById('btn-prev').addEventListener('click', () => go(cur - 1));
@@ -1091,7 +1112,77 @@ class BatchIntegrationTest {
     if (e.key === 'End')  go(slides.length - 1);
   });
 
-  go(0);
+  // Init counter + progress
+  counter.textContent = '1 / ' + slides.length;
+  bar.style.width = (1 / slides.length * 100) + '%';
+
+  // ── Particle constellation on title slide ────────────────────
+  (function () {
+    const canvas = document.getElementById('title-bg');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width  = canvas.offsetWidth  || window.innerWidth;
+      canvas.height = canvas.offsetHeight || window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const N        = 75;
+    const MAX_DIST = 160;
+    const pts = Array.from({ length: N }, () => ({
+      x:  Math.random() * canvas.width,
+      y:  Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.38,
+      vy: (Math.random() - 0.5) * 0.38,
+      r:  Math.random() * 1.6 + 0.7,
+    }));
+
+    // Subtle mouse parallax
+    let mx = canvas.width  / 2;
+    let my = canvas.height / 2;
+    window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const ox = (mx - canvas.width  / 2) * 0.018;
+      const oy = (my - canvas.height / 2) * 0.018;
+
+      // Connections
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const dx = (pts[i].x + ox) - (pts[j].x + ox);
+          const dy = (pts[i].y + oy) - (pts[j].y + oy);
+          const d  = Math.sqrt(dx * dx + dy * dy);
+          if (d < MAX_DIST) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(91,195,245,${(1 - d / MAX_DIST) * 0.28})`;
+            ctx.lineWidth = 0.8;
+            ctx.moveTo(pts[i].x + ox, pts[i].y + oy);
+            ctx.lineTo(pts[j].x + ox, pts[j].y + oy);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Dots
+      for (const p of pts) {
+        ctx.beginPath();
+        ctx.arc(p.x + ox, p.y + oy, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(91,195,245,0.6)';
+        ctx.fill();
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width)  p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      }
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
 </script>
 </body>
 </html>
