@@ -963,6 +963,14 @@ class BatchIntegrationTest {
   <p class="section-label">Part 6</p>
   <h1 style="color:var(--green);">Live Demo</h1>
   <p class="subtitle" style="margin-top:8px;"><code>mvn spring-boot:run</code></p>
+  <a href="https://github.com/darthrevanyunka/dariel-springbatch-demo"
+     target="_blank"
+     style="display:inline-flex;align-items:center;gap:8px;margin-top:20px;background:var(--surface2);border:1px solid rgba(91,195,245,0.3);border-radius:8px;padding:9px 18px;text-decoration:none;color:var(--blue);font-size:0.8em;font-family:'JetBrains Mono',Consolas,monospace;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+    </svg>
+    github.com/darthrevanyunka/dariel-springbatch-demo
+  </a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
@@ -1046,8 +1054,18 @@ class BatchIntegrationTest {
   <div class="logo">🌿</div>
   <h1>Questions?</h1>
   <p class="subtitle">Thanks for your attention</p>
-  <div style="font-size:0.82em;color:var(--muted);margin-top:28px;line-height:2.4;">
-    <div>Demo repo &nbsp;·&nbsp; <code>mvn spring-boot:run</code> &nbsp;·&nbsp; docs.spring.io/spring-batch</div>
+  <div style="margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:12px;">
+    <a href="https://github.com/darthrevanyunka/dariel-springbatch-demo"
+       target="_blank"
+       style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid rgba(91,195,245,0.3);border-radius:8px;padding:10px 20px;text-decoration:none;color:var(--blue);font-size:0.85em;font-family:'JetBrains Mono',Consolas,monospace;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+      </svg>
+      github.com/darthrevanyunka/dariel-springbatch-demo
+    </a>
+    <div style="font-size:0.78em;color:var(--muted);">
+      <code>mvn spring-boot:run</code> &nbsp;·&nbsp; docs.spring.io/spring-batch
+    </div>
   </div>
 </div>
 
@@ -1123,8 +1141,8 @@ class BatchIntegrationTest {
     const ctx = canvas.getContext('2d');
 
     function resize() {
-      canvas.width  = canvas.offsetWidth  || window.innerWidth;
-      canvas.height = canvas.offsetHeight || window.innerHeight;
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
     }
     resize();
     window.addEventListener('resize', resize);
@@ -1132,8 +1150,8 @@ class BatchIntegrationTest {
     const N        = 75;
     const MAX_DIST = 160;
     const pts = Array.from({ length: N }, () => ({
-      x:  Math.random() * canvas.width,
-      y:  Math.random() * canvas.height,
+      x:  Math.random() * window.innerWidth,
+      y:  Math.random() * window.innerHeight,
       vx: (Math.random() - 0.5) * 0.38,
       vy: (Math.random() - 0.5) * 0.38,
       r:  Math.random() * 1.6 + 0.7,
