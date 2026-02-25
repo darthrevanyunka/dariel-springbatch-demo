@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spring Batch — Developer Introduction</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:      #2485e8;            /* Dariel primary blue (readable on dark) */
+      --green-glow: rgba(36,133,232,0.12);
+      --dark:       #0d1421;            /* deep navy */
+      --surface:    #162035;
+      --surface2:   #1e2d45;            /* Dariel dark slate */
+      --border:     rgba(255,255,255,0.07);
+      --text:       #dde8f5;            /* blue-tinted white */
+      --muted:      #7a8fa8;
+      --orange:     #e07e2c;
+      --blue:       #5bc3f5;            /* Dariel light blue */
+    }
+
+    html, body {
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+      background: var(--dark);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+    }
+
+    /* ── SLIDE ENGINE ───────────────────────────────────────── */
+    #deck { width: 100vw; height: 100vh; }
+
+    .slide {
+      display: none;
+      position: absolute;
+      inset: 0;
+      padding: 52px 72px 64px;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--dark);
+    }
+    .slide.active { display: flex; }
+    .slide.center  { align-items: center; text-align: center; }
+
+    /* ── TYPOGRAPHY ─────────────────────────────────────────── */
+    h1 {
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    h2 {
+      font-size: clamp(1.3rem, 2.8vw, 1.8rem);
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5em;
+    }
+    h3 {
+      font-size: clamp(0.8rem, 1.6vw, 0.95rem);
+      font-weight: 600;
+      color: #7ab8e8;
+      margin-bottom: 0.4em;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    p  { font-size: clamp(0.82rem, 1.6vw, 0.95rem); line-height: 1.65; }
+
+    .subtitle { font-size: clamp(0.95rem, 2vw, 1.2rem); color: var(--muted); margin-top: 0.4em; }
+    .section-label { font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 0.4em; }
+
+    /* ── LISTS ──────────────────────────────────────────────── */
+    ul, ol { padding-left: 1.3em; }
+    li { font-size: clamp(0.8rem, 1.55vw, 0.92rem); line-height: 1.6; margin-bottom: 0.25em; }
+    li strong { color: var(--green); }
+
+    /* ── GRID LAYOUTS ───────────────────────────────────────── */
+    .g2  { display: grid; grid-template-columns: 1fr 1fr;   gap: 20px; align-items: start; }
+    .g3  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; align-items: start; }
+    .g60 { display: grid; grid-template-columns: 3fr 2fr;   gap: 20px; align-items: start; }
+
+    /* ── CARD ───────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .card.green  { border-color: rgba(36,133,232,0.35); background: var(--green-glow); }
+    .card.orange { border-color: rgba(224,126,44,0.35); background: rgba(224,126,44,0.08); }
+
+    /* ── CALLOUT ─────────────────────────────────────────────── */
+    .callout {
+      border-left: 3px solid var(--green);
+      background: var(--green-glow);
+      border-radius: 0 6px 6px 0;
+      padding: 9px 14px;
+      margin-top: 14px;
+      font-size: clamp(0.76rem, 1.4vw, 0.86rem);
+      line-height: 1.55;
+    }
+    .callout.orange { border-color: var(--orange); background: rgba(224,126,44,0.08); }
+
+    /* ── FLOW DIAGRAM ───────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      gap: 0;
+      margin: 14px 0;
+    }
+    .fbox {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--green);
+      border-radius: 8px;
+      padding: 9px 14px;
+      background: var(--surface);
+      min-width: 100px;
+      text-align: center;
+    }
+    .fbox small { font-size: 0.58em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .fbox strong { font-size: 0.82em; margin-top: 2px; }
+    .fbox.dim  { border-color: var(--muted); }
+    .fbox.blue { border-color: var(--blue);  background: rgba(59,139,186,0.1); }
+    .farrow { display: flex; align-items: center; padding: 0 6px; font-size: 1.3em; color: var(--green); }
+
+    /* ── CODE ───────────────────────────────────────────────── */
+    pre {
+      border-radius: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      font-size: clamp(0.62rem, 1.25vw, 0.74rem);
+      line-height: 1.5;
+    }
+    pre code {
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace !important;
+      padding: 14px 16px !important;
+    }
+
+    /* ── TABLE ──────────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; font-size: clamp(0.75rem, 1.4vw, 0.85rem); }
+    th { background: var(--green-glow); color: var(--green); text-align: left; padding: 8px 12px; border-bottom: 2px solid rgba(36,133,232,0.3); }
+    td { padding: 7px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    td code, th code { background: var(--surface2); padding: 1px 5px; border-radius: 3px; font-family: monospace; }
+
+    /* ── TREE ───────────────────────────────────────────────── */
+    .tree {
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: clamp(0.72rem, 1.4vw, 0.84rem);
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 18px 22px;
+      line-height: 1.9;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .tree .g { color: var(--blue); font-weight: 600; }
+    .tree .m { color: var(--muted); }
+
+    /* ── STAT BOXES ─────────────────────────────────────────── */
+    .stats { display: flex; gap: 14px; justify-content: center; margin: 14px 0; }
+    .stat { text-align: center; padding: 12px 18px; background: var(--surface); border: 1px solid rgba(36,133,232,0.25); border-radius: 10px; }
+    .stat .n { display: block; font-size: clamp(1.3rem, 2.5vw, 1.8rem); font-weight: 800; color: var(--green); }
+    .stat .l { font-size: 0.58em; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+
+    /* ── AGENDA ─────────────────────────────────────────────── */
+    .arow { display: flex; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: clamp(0.8rem, 1.55vw, 0.9rem); }
+    .anum { width: 26px; height: 26px; background: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72em; font-weight: 700; flex-shrink: 0; }
+    .atime { margin-left: auto; color: var(--muted); font-size: 0.82em; flex-shrink: 0; }
+
+    /* ── BADGE ──────────────────────────────────────────────── */
+    .badge { display: inline-block; background: var(--green); color: #fff; padding: 1px 7px; border-radius: 4px; font-size: 0.68em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; vertical-align: middle; }
+    .badge.blue { background: var(--blue); }
+
+    /* ── LOGO ───────────────────────────────────────────────── */
+    .logo { font-size: clamp(2.5rem, 6vw, 4rem); margin-bottom: 0.15em; }
+
+    /* ── TITLE SLIDE ─────────────────────────────────────────── */
+    .title-kicker {
+      font-size: 0.72em;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--blue);
+      margin-bottom: 0.6em;
+      font-weight: 600;
+    }
+    .title-rule {
+      width: 48px; height: 3px;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      border-radius: 2px;
+      margin: 18px auto;
+    }
+    .title-tags {
+      display: flex; gap: 10px; justify-content: center;
+      margin-top: 14px; flex-wrap: wrap;
+    }
+    .title-tag {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 0.75em;
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      color: var(--muted);
+    }
+    .author-block {
+      margin-top: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .author-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1em; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .author-info { text-align: left; }
+    .author-name { font-size: 0.95em; font-weight: 600; color: var(--text); }
+    .author-role {
+      font-size: 0.72em;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .author-role span {
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    /* ── PRESENTER TAG (legacy) ──────────────────────────────── */
+    .ptag { display: inline-block; margin-top: 28px; padding: 7px 20px; border: 1px solid rgba(36,133,232,0.4); border-radius: 20px; font-size: 0.82em; color: var(--green); }
+
+    /* ── TITLE SLIDE ANIMATION ───────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .slide.active .anim-1 { animation: fadeUp 0.5s ease 0.05s both; }
+    .slide.active .anim-2 { animation: fadeUp 0.5s ease 0.15s both; }
+    .slide.active .anim-3 { animation: fadeUp 0.5s ease 0.25s both; }
+    .slide.active .anim-4 { animation: fadeUp 0.5s ease 0.35s both; }
+    .slide.active .anim-5 { animation: fadeUp 0.5s ease 0.45s both; }
+
+    /* ── NAV ────────────────────────────────────────────────── */
+    #progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--green); transition: width 0.25s ease; z-index: 50; }
+
+    #brand { position: fixed; bottom: 16px; left: 24px; z-index: 50; opacity: 0.85; }
+    #brand img { height: 30px; width: auto; display: block; }
+
+    #nav { position: fixed; bottom: 18px; right: 20px; display: flex; align-items: center; gap: 10px; z-index: 50; }
+    #counter { font-size: 0.72em; color: var(--muted); font-family: monospace; }
+    .nbtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-size: 1.1em; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+    .nbtn:hover { background: var(--green); border-color: var(--green); color: #fff; }
+  </style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="deck">
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 1 · TITLE                                                   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide center active">
+  <p class="title-kicker anim-1">Java Guild · 2026</p>
+  <h1 class="anim-2" style="font-size:clamp(2.4rem,6vw,4rem);background:linear-gradient(120deg,var(--text) 40%,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Spring Batch</h1>
+  <p class="subtitle anim-3">A Practical Introduction for Developers</p>
+  <div class="title-rule anim-3"></div>
+  <div class="title-tags anim-4">
+    <span class="title-tag">spring-boot 3.2</span>
+    <span class="title-tag">java 17</span>
+    <span class="title-tag">h2 in-memory db</span>
+  </div>
+  <div class="author-block anim-5">
+    <div class="author-avatar">JR</div>
+    <div class="author-info">
+      <div class="author-name">Jürgen Roos</div>
+      <div class="author-role"><span>OCTO</span> · Dariel</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 2 · AGENDA                                                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Agenda</h2>
+  <div class="arow"><div class="anum">1</div><span>What is batch processing &amp; why Spring Batch?</span><span class="atime">~10 min</span></div>
+  <div class="arow"><div class="anum">2</div><span>Core concepts — Jobs, Steps, Chunks, Readers, Processors, Writers</span><span class="atime">~10 min</span></div>
+  <div class="arow"><div class="anum">3</div><span>Demo 1 — The Basics (CSV → transform → CSV)</span><span class="atime">~10 min</span></div>
+  <div class="arow"><div class="anum">4</div><span>Demo 2 — Advanced (10 k customers · 2 steps · database · aggregation)</span><span class="atime">~15 min</span></div>
+  <div class="arow"><div class="anum">5</div><span>Error handling, listeners &amp; testing</span><span class="atime">~10 min</span></div>
+  <div class="arow"><div class="anum">6</div><span>Live run &amp; Q&amp;A</span><span class="atime">~5 min</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 3 · SECTION — WHAT IS BATCH?                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide center">
+  <p class="section-label">Part 1</p>
+  <h1 style="color:var(--green);">What is Batch Processing?</h1>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 4 · BATCH VS ONLINE                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Batch vs. Online Processing</h2>
+  <div class="g2" style="margin-top:10px;">
+    <div class="card">
+      <h3>Online / Request-Response</h3>
+      <ul>
+        <li>User triggers a single request</li>
+        <li>Response must come back fast (&lt;1 s)</li>
+        <li>Small payload per call</li>
+        <li>Examples: REST APIs, web pages, mobile apps</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Batch Processing</h3>
+      <ul>
+        <li>No human waiting for a response</li>
+        <li>Large volumes of data processed at once</li>
+        <li>Usually scheduled — overnight, end-of-month</li>
+        <li>Throughput over latency</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Rule of thumb:</strong> If you're processing more records than a human can review in real time, you need batch.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 5 · USE CASES                                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>When do you reach for batch?</h2>
+  <div class="g2" style="margin-top:14px;">
+    <ul>
+      <li>Bank statement generation (month-end)</li>
+      <li>Payroll calculations</li>
+      <li>ETL — extract, transform, load</li>
+      <li>Sending bulk email / notifications</li>
+    </ul>
+    <ul>
+      <li>Data migration between systems</li>
+      <li>Nightly report generation</li>
+      <li>Inventory reconciliation</li>
+      <li>Log aggregation &amp; analytics</li>
+    </ul>
+  </div>
+  <div class="callout orange" style="margin-top:20px;">
+    <strong>Today's scenario:</strong> A global ecommerce platform exports 10 000+ raw order records every night. A Spring Batch job validates and cleans them, loads them into a reporting database, then aggregates revenue by country — so the sales dashboard is ready by morning.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 6 · WHY SPRING BATCH                                        -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Why Spring Batch?</h2>
+  <p style="color:var(--muted);font-size:0.88em;margin-bottom:14px;">You could write a loop. But then you'd also need to build:</p>
+  <div class="g2">
+    <div class="card">
+      <h3>Without a framework</h3>
+      <ul>
+        <li>Manual restart &amp; recovery logic</li>
+        <li>Rolling back partial writes on failure</li>
+        <li>Progress tracking &amp; logging</li>
+        <li>Memory management for huge files</li>
+        <li>Parallel processing plumbing</li>
+        <li>Job history &amp; auditing</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>With Spring Batch</h3>
+      <ul>
+        <li>All of the above — built in</li>
+        <li>Clear, testable structure</li>
+        <li>Integrates with the Spring ecosystem</li>
+        <li>Production-proven at scale</li>
+        <li>Built-in I/O for CSV, JSON, JDBC, JPA, Kafka…</li>
+        <li>Declarative, familiar configuration</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 7 · SECTION — CORE CONCEPTS                                 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide center">
+  <p class="section-label">Part 2</p>
+  <h1 style="color:var(--green);">Core Concepts</h1>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 8 · BUILDING BLOCKS                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>The Building Blocks</h2>
+  <div class="tree" style="margin-top:12px;">
+<span class="g">Job</span>                           <span class="m">// a named unit of batch work</span>
+ └── <span class="g">Step</span>                        <span class="m">// a discrete phase inside the job</span>
+      └── <span class="g">Chunk&lt;Input, Output&gt;</span>   <span class="m">// reads N items, processes each, writes all N</span>
+           ├── <span class="g">ItemReader</span>            <span class="m">// reads one item at a time</span>
+           ├── <span class="g">ItemProcessor</span>         <span class="m">// transforms / validates  (optional)</span>
+           └── <span class="g">ItemWriter</span>            <span class="m">// writes the whole chunk at once</span>
+ └── <span class="g">Step 2</span> ...                  <span class="m">// a job can have as many steps as needed</span>
+  </div>
+  <div class="callout" style="margin-top:16px;">
+    A <strong>Job</strong> is made of <strong>Steps</strong>. Each Step processes data in <strong>Chunks</strong>.
+    The Reader loops one item at a time; the Writer flushes the whole batch — inside one transaction.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 9 · CHUNK MODEL                                             -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Chunk-Oriented Processing</h2>
+  <p style="color:var(--muted);font-size:0.88em;margin-bottom:4px;">Instead of read-all then write-all, data flows in bounded chunks — each chunk is one database transaction.</p>
+
+  <div class="flow">
+    <div class="fbox dim"><small>source</small><strong>CSV / DB</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox"><small>Reader</small><strong>reads 1</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox"><small>Processor</small><strong>transforms 1</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox"><small>Writer</small><strong>writes chunk</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox blue"><small>target</small><strong>CSV / DB</strong></div>
+  </div>
+
+  <div class="g3" style="margin-top:14px;">
+    <div class="card">
+      <h3>ItemReader</h3>
+      <p>Returns one item per call.<br>Returns <code>null</code> when the source is exhausted — no loop needed.</p>
+    </div>
+    <div class="card">
+      <h3>ItemProcessor</h3>
+      <p>Transforms or validates. Return <code>null</code> to <strong>skip</strong> an item. Entirely optional.</p>
+    </div>
+    <div class="card">
+      <h3>ItemWriter</h3>
+      <p>Receives the whole <code>Chunk&lt;O&gt;</code>. Writes in bulk for efficiency and atomicity.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 10 · JOB REPOSITORY                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Spring Batch Keeps Its Own History</h2>
+  <p style="color:var(--muted);font-size:0.88em;margin-bottom:14px;">Every run is automatically stored in a <strong>JobRepository</strong> — a set of tables in your database.</p>
+  <table>
+    <thead><tr><th>Table</th><th>Stores</th></tr></thead>
+    <tbody>
+      <tr><td><code>BATCH_JOB_INSTANCE</code></td><td>Unique combination of job name + parameters</td></tr>
+      <tr><td><code>BATCH_JOB_EXECUTION</code></td><td>Each run: start time, end time, final status</td></tr>
+      <tr><td><code>BATCH_STEP_EXECUTION</code></td><td>Per-step metrics: read / write / skip counts</td></tr>
+      <tr><td><code>BATCH_JOB_EXECUTION_PARAMS</code></td><td>Parameters passed to the job</td></tr>
+    </tbody>
+  </table>
+  <div class="callout" style="margin-top:16px;">
+    This is how Spring Batch supports <strong>restartability</strong> — it knows exactly which chunk a failed job reached and can pick up from there. In this demo we use H2 in-memory; in production, point it at Postgres or MySQL.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 11 · SECTION — DEMO 1                                       -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide center">
+  <p class="section-label">Part 3 · Demo 1</p>
+  <h1 style="color:var(--green);">The Basics</h1>
+  <p class="subtitle">CSV → uppercase names → CSV</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 12 · BASICS OVERVIEW                                        -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Basics Job — Overview</h2>
+  <div class="flow" style="margin:18px 0 20px;">
+    <div class="fbox dim"><small>input</small><strong>input.csv</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox"><small>Reader</small><strong>FlatFileItemReader</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox"><small>Processor</small><strong>PersonProcessor</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox"><small>Writer</small><strong>FlatFileItemWriter</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox dim"><small>output</small><strong>basics-output.csv</strong></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <h3>Input — input.csv</h3>
+      <pre><code class="language-csv">firstName,lastName
+Jill,Doe
+Joe,Doe
+Justin,Doe
+Jane,Doe
+John,Doe</code></pre>
+    </div>
+    <div class="card">
+      <h3>Output — basics-output.csv</h3>
+      <pre><code class="language-csv">firstName,lastName
+JILL,DOE
+JOE,DOE
+JUSTIN,DOE
+JANE,DOE
+JOHN,DOE</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 13 · READER CODE                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Basics — The Reader</h2>
+  <p style="color:var(--muted);font-size:0.82em;margin-bottom:12px;"><code>basics/config/BasicsJobConfig.java</code></p>
+  <pre><code class="language-java">@Bean
+public FlatFileItemReader&lt;Person&gt; basicsReader() {
+    return new FlatFileItemReaderBuilder&lt;Person&gt;()
+        .name("personItemReader")
+        .resource(new ClassPathResource("basics/input.csv"))
+        .delimited()
+        .names("firstName", "lastName")   // CSV column names
+        .targetType(Person.class)          // maps to POJO via reflection
+        .build();
+}</code></pre>
+  <div class="callout" style="margin-top:16px;">
+    The reader returns <em>one</em> <code>Person</code> per call, and returns <code>null</code> when the file is exhausted.
+    Spring Batch drives the loop — you never write it yourself.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 14 · PROCESSOR CODE                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Basics — The Processor</h2>
+  <p style="color:var(--muted);font-size:0.82em;margin-bottom:12px;"><code>basics/processing/PersonProcessor.java</code></p>
+  <pre><code class="language-java">public class PersonProcessor implements ItemProcessor&lt;Person, Person&gt; {
+
+    @Override
+    public Person process(Person person) {
+        String firstName = person.firstName().toUpperCase();
+        String lastName  = person.lastName().toUpperCase();
+
+        Person transformed = new Person(firstName, lastName);
+        log.info("Converting {} to {}", person, transformed);
+
+        return transformed;   // return null here to SKIP this item entirely
+    }
+}</code></pre>
+  <div class="callout" style="margin-top:16px;">
+    The interface is generic: <code>ItemProcessor&lt;Input, Output&gt;</code>. Input and output types can differ — useful when translating between two domain models.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 15 · STEP + JOB WIRING                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Basics — Wiring the Step &amp; Job</h2>
+  <pre><code class="language-java">@Bean
+public Step basicsStep(JobRepository repo, PlatformTransactionManager tx,
+                       FlatFileItemReader&lt;Person&gt; reader,
+                       PersonProcessor processor,
+                       FlatFileItemWriter&lt;Person&gt; writer) {
+
+    return new StepBuilder("basicsStep", repo)
+        .&lt;Person, Person&gt;chunk(10, tx)   // chunk size = 10 items per transaction
+        .reader(reader)
+        .processor(processor)
+        .writer(writer)
+        .build();
+}
+
+@Bean
+public Job basicsJob(JobRepository repo, Step basicsStep) {
+    return new JobBuilder("basicsJob", repo)
+        .start(basicsStep)
+        .build();
+}</code></pre>
+  <p style="color:var(--muted);font-size:0.82em;margin-top:12px;">Everything assembled with builders. Every piece is a Spring bean — testable, injectable, familiar.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 16 · SECTION — DEMO 2                                       -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide center">
+  <p class="section-label">Part 4 · Demo 2</p>
+  <h1 style="color:var(--green);">The Advanced Demo</h1>
+  <p class="subtitle">A global ecommerce sales pipeline · 41 markets · nightly batch job</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 17 · ADVANCED OVERVIEW                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>The Scenario</h2>
+
+  <div class="g2" style="margin-bottom:16px;">
+    <div class="card" style="border-color:rgba(36,133,232,0.3);">
+      <h3>The problem</h3>
+      <p>A global ecommerce platform sells across 41 countries. Every night the ordering system dumps a raw CSV export of the day's transactions. The data is messy — mixed case, missing emails, bad amounts. The sales team needs a clean per-country revenue breakdown ready in their dashboard by 08:00.</p>
+    </div>
+    <div class="card" style="border-color:rgba(36,133,232,0.3);">
+      <h3>The solution</h3>
+      <p>A nightly Spring Batch job runs at 02:00, validates and normalises every order record, loads the clean data into a reporting database, then aggregates it into a per-country summary CSV that the dashboard reads on startup.</p>
+    </div>
+  </div>
+
+  <p style="font-size:0.78em;color:var(--muted);margin:0 0 5px;">Step 1 — validate &amp; load raw orders</p>
+  <div class="flow">
+    <div class="fbox dim"><small>nightly export</small><strong>orders.csv</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox"><small>validate &amp; clean</small><strong>CustomerProcessor</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox blue"><small>~9 200 clean orders</small><strong>customers table</strong></div>
+  </div>
+
+  <p style="font-size:0.78em;color:var(--muted);margin:10px 0 5px;">Step 2 — aggregate for the dashboard</p>
+  <div class="flow">
+    <div class="fbox blue"><small>clean orders</small><strong>customers table</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox"><small>group by country</small><strong>CountryStatisticsReader</strong></div>
+    <div class="farrow">→</div>
+    <div class="fbox dim"><small>dashboard feed</small><strong>country-statistics.csv</strong></div>
+  </div>
+
+  <div class="stats" style="margin-top:14px;">
+    <div class="stat"><span class="n">10k+</span><span class="l">Raw orders in</span></div>
+    <div class="stat"><span class="n">~9 200</span><span class="l">Valid orders</span></div>
+    <div class="stat"><span class="n">~800</span><span class="l">Rejected</span></div>
+    <div class="stat"><span class="n">41</span><span class="l">Markets reported</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 18 · DIRTY DATA                                             -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Real-World Data Quality Problems</h2>
+  <p style="color:var(--muted);font-size:0.86em;margin-bottom:10px;">The nightly CSV export is generated by multiple regional order systems — they don't agree on formatting conventions.</p>
+  <pre><code class="language-csv">id,firstName,lastName,email,country,purchaseAmount
+1,alex,johnson,alex.j@email.com,south africa,523.45   ← lowercase name & country
+2,MARIA,SMITH,,united states,-15.00                   ← guest checkout (no email) + bad amount
+3,Wei,Chen,wei@test.com,china,341.20                  ← clean record</code></pre>
+
+  <div class="g3" style="margin-top:14px;">
+    <div class="card">
+      <h3>Inconsistent casing</h3>
+      <p>Regional systems export names and countries in different formats. Normalised to <code>"Alex"</code> and <code>"SOUTH AFRICA"</code> for consistent grouping.</p>
+    </div>
+    <div class="card">
+      <h3>Guest checkouts</h3>
+      <p>~5% of orders come from guests with no account — no email on file. These can't be attributed to a customer, so they're excluded from the report.</p>
+    </div>
+    <div class="card">
+      <h3>Erroneous amounts</h3>
+      <p>Some regional systems write refund entries as negative purchase amounts instead of separate records. These are rejected to avoid skewing revenue figures.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 19 · CUSTOMER PROCESSOR                                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>CustomerProcessor — Filter &amp; Clean</h2>
+  <pre><code class="language-java">@Override
+public Customer process(Customer c) {
+
+    // FILTER — return null to skip this record silently
+    if (c.email() == null || c.email().isBlank())             return null;
+    if (c.purchaseAmount() == null || c.purchaseAmount() < 0) return null;
+
+    // TRANSFORM
+    return new Customer(
+        c.id(),
+        capitalize(c.firstName()),    // "ALEX" → "Alex"
+        capitalize(c.lastName()),
+        c.email().toLowerCase(),
+        c.country().toUpperCase(),    // "south africa" → "SOUTH AFRICA"
+        c.purchaseAmount()
+    );
+}</code></pre>
+  <div class="callout" style="margin-top:14px;">
+    Returning <code>null</code> is the idiomatic Spring Batch way to skip a record — no exception, no special configuration, just <code>return null</code>.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 20 · JDBC WRITER                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Step 1 — Writing to the Database</h2>
+  <pre><code class="language-java">@Bean
+public JdbcBatchItemWriter&lt;Customer&gt; customerWriter(DataSource ds) {
+    return new JdbcBatchItemWriterBuilder&lt;Customer&gt;()
+        .dataSource(ds)
+        .sql("""
+            INSERT INTO customers
+                (id, first_name, last_name, email, country, purchase_amount)
+            VALUES
+                (:id, :firstName, :lastName, :email, :country, :purchaseAmount)
+            """)
+        .beanMapped()   // maps Java record fields to named SQL parameters
+        .build();
+}</code></pre>
+  <div class="callout" style="margin-top:16px;">
+    <strong>Chunk = transaction.</strong> With chunk size 25, every 25 valid customers are inserted in a single batch inside one transaction. A failure rolls back only that chunk — previously committed chunks are untouched.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 21 · CUSTOM READER                                          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Step 2 — Custom Aggregating Reader</h2>
+  <p style="color:var(--muted);font-size:0.84em;margin-bottom:10px;">Step 2 needs to aggregate rows by country. No built-in reader does this — so we implement <code>ItemReader</code> ourselves.</p>
+  <pre><code class="language-java">public class CountryStatisticsReader implements ItemReader&lt;CountryStatistics&gt; {
+    private Iterator&lt;CountryStatistics&gt; iterator;
+
+    @Override
+    public CountryStatistics read() {
+        if (iterator == null) {
+            // Called once on the first read — load and aggregate everything
+            List&lt;Customer&gt; all = jdbc.query("SELECT * FROM customers", ...);
+            Map&lt;String, CountryStatistics&gt; map = new HashMap&lt;&gt;();
+            for (Customer c : all)
+                map.merge(c.country(), new CountryStatistics(c), CountryStatistics::merge);
+            iterator = map.values().iterator();
+        }
+        return iterator.hasNext() ? iterator.next() : null;  // null = done
+    }
+}</code></pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 22 · OUTPUT                                                 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Step 2 — Country Statistics Output</h2>
+  <div class="g60">
+    <div>
+      <h3>country-statistics.csv</h3>
+      <pre><code class="language-csv">country,customerCount,totalRevenue,avgPurchase
+CANADA,227,116600.54,513.66
+VIETNAM,243,122213.53,502.94
+TURKEY,212,99352.62,468.64
+GERMANY,198,95432.11,481.98
+...
+ICELAND,1,850.75,850.75
+(41 countries total)</code></pre>
+    </div>
+    <div>
+      <h3>CountryStatistics.java</h3>
+      <pre><code class="language-java">public record CountryStatistics(
+    String country,
+    long   customerCount,
+    double totalRevenue,
+    double averagePurchaseAmount
+) {}</code></pre>
+      <div class="callout" style="margin-top:12px;font-size:0.85em;">
+        <code>CountryStatisticsProcessor</code> rounds monetary values to 2 decimal places before the writer flushes.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 23 · SECTION — LISTENERS & TESTING                          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide center">
+  <p class="section-label">Part 5</p>
+  <h1 style="color:var(--green);">Listeners, Error Handling &amp; Testing</h1>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 24 · LISTENERS                                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Listeners — Hooks at Every Level</h2>
+  <div class="g3">
+    <div class="card">
+      <h3>JobExecutionListener</h3>
+      <pre><code class="language-java">void beforeJob(JobExecution e);
+void afterJob(JobExecution e);</code></pre>
+      <p style="margin-top:8px;font-size:0.84em;">Logs job name, start/end time, final status.</p>
+    </div>
+    <div class="card">
+      <h3>StepExecutionListener</h3>
+      <pre><code class="language-java">void beforeStep(StepExecution e);
+ExitStatus afterStep(StepExecution e);</code></pre>
+      <p style="margin-top:8px;font-size:0.84em;">Read count, write count, skip count per step.</p>
+    </div>
+    <div class="card">
+      <h3>ChunkListener</h3>
+      <pre><code class="language-java">void beforeChunk(ChunkContext c);
+void afterChunk(ChunkContext c);
+void afterChunkError(ChunkContext c);</code></pre>
+      <p style="margin-top:8px;font-size:0.84em;">Running totals across each chunk.</p>
+    </div>
+  </div>
+  <pre style="margin-top:14px;"><code class="language-java">new StepBuilder("processStep", repo)
+    .listener(jobListener).listener(stepListener).listener(chunkListener)
+    ...</code></pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 25 · ERROR HANDLING                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Error Handling Strategies</h2>
+  <table style="margin-top:10px;">
+    <thead><tr><th>Strategy</th><th>What it does</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>return null</code> <span class="badge">processor</span></td>
+        <td>Silently skips the item — used in this demo for invalid emails and negative amounts.</td>
+        <td>Bad data is expected and should be excluded.</td>
+      </tr>
+      <tr>
+        <td><code>.skip(Ex.class)</code><br><code>.skipLimit(N)</code></td>
+        <td>Skips items that throw a specific exception, up to N times total.</td>
+        <td>Occasional bad records in otherwise good data.</td>
+      </tr>
+      <tr>
+        <td><code>.retry(Ex.class)</code><br><code>.retryLimit(N)</code></td>
+        <td>Retries the chunk when a transient exception occurs.</td>
+        <td>Flaky external services, transient DB errors.</td>
+      </tr>
+      <tr>
+        <td>Chunk rollback</td>
+        <td>Automatic — a failed write rolls back only the current chunk.</td>
+        <td>Always on, no configuration needed.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 26 · TESTING                                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Testing</h2>
+  <div class="g2">
+    <div>
+      <h3>Integration test — run the real job</h3>
+      <pre><code class="language-java">@SpringBatchTest
+@SpringBootTest
+class BatchIntegrationTest {
+
+    @Autowired JobLauncherTestUtils utils;
+
+    @Test
+    void customerJob_completesSuccessfully() throws Exception {
+        JobExecution exec = utils.launchJob();
+
+        assertEquals(COMPLETED, exec.getStatus());
+
+        StepExecution step1 = getStep(exec, "processStep");
+        assertEquals(13, step1.getWriteCount()); // 2 of 15 skipped
+    }
+}</code></pre>
+    </div>
+    <div>
+      <h3>Unit test — processor in isolation</h3>
+      <pre><code class="language-java">class CountryStatisticsProcessorTest {
+
+    @Test
+    void roundsToTwoDecimals() {
+        var input = new CountryStatistics(
+            "CANADA", 10,
+            116600.5432, 513.6612
+        );
+        var result = processor.process(input);
+
+        assertThat(result.totalRevenue())
+            .isEqualTo(116600.54);
+        assertThat(result.averagePurchaseAmount())
+            .isEqualTo(513.66);
+    }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 27 · LIVE DEMO SECTION                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide center">
+  <p class="section-label">Part 6</p>
+  <h1 style="color:var(--green);">Live Demo</h1>
+  <p class="subtitle" style="margin-top:8px;"><code>mvn spring-boot:run</code></p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 28 · LIVE DEMO CHECKLIST                                    -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>What to watch</h2>
+  <div class="g2">
+    <div>
+      <h3>In the console</h3>
+      <ul>
+        <li>Job start banner from <code>DemoJobExecutionListener</code></li>
+        <li>Chunk progress: <em>"Read 25, Written 25"</em></li>
+        <li><em>"Skipping customer …"</em> warnings for invalid rows</li>
+        <li>Step execution summaries with counts</li>
+        <li>Job completion status &amp; total duration</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Output files to inspect</h3>
+      <ul>
+        <li><code>basics-output.csv</code> — 5 uppercased names</li>
+        <li><code>country-statistics.csv</code> — 41 countries with revenue totals</li>
+      </ul>
+      <div class="callout" style="margin-top:14px;">
+        Both jobs run sequentially on startup via a <code>CommandLineRunner</code>. Each run passes a unique timestamp as a job parameter so it can run repeatedly without conflicting with previous instances.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 29 · WHEN TO USE                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Should I use Spring Batch?</h2>
+  <div class="g2" style="margin-top:12px;">
+    <div class="card green">
+      <h3>Good fit ✓</h3>
+      <ul>
+        <li>Processing thousands to millions of records</li>
+        <li>Nightly / scheduled jobs</li>
+        <li>ETL pipelines</li>
+        <li>You need restart / resume on failure</li>
+        <li>Data transformation with an audit trail</li>
+        <li>You're already on the Spring stack</li>
+      </ul>
+    </div>
+    <div class="card orange">
+      <h3>Probably overkill ✗</h3>
+      <ul>
+        <li>One-off migration script (just write a script)</li>
+        <li>Very small datasets (&lt; a few hundred rows)</li>
+        <li>Real-time streams (Kafka Streams, Flink)</li>
+        <li>Simple scheduled tasks (<code>@Scheduled</code> is enough)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 30 · KEY TAKEAWAYS                                          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <h2>Key Takeaways</h2>
+  <ul style="margin-top:14px;">
+    <li><strong>Read → Process → Write</strong> in chunks is the core pattern. Everything else builds on top.</li>
+    <li>Returning <code>null</code> from a processor is how you skip items — no special API, just <code>return null</code>.</li>
+    <li><strong>Each chunk is one transaction</strong> — a failure never corrupts previously committed data.</li>
+    <li>Spring Batch <strong>saves job history automatically</strong> — restart, auditing, and metrics come for free.</li>
+    <li>Built-in readers/writers for CSV, JSON, JDBC, JPA, Kafka — you rarely write I/O plumbing.</li>
+    <li>Listeners give you observability at Job, Step, and Chunk level with zero coupling to business logic.</li>
+    <li>Everything is a Spring bean — familiar, testable, and injectable.</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 31 · Q&A                                                    -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="slide center">
+  <div class="logo">🌿</div>
+  <h1>Questions?</h1>
+  <p class="subtitle">Thanks for your attention</p>
+  <div style="font-size:0.82em;color:var(--muted);margin-top:28px;line-height:2.4;">
+    <div>Demo repo &nbsp;·&nbsp; <code>mvn spring-boot:run</code> &nbsp;·&nbsp; docs.spring.io/spring-batch</div>
+  </div>
+</div>
+
+</div><!-- /#deck -->
+
+<!-- ── NAVIGATION ─────────────────────────────────────────── -->
+<div id="brand">
+  <img src="https://www.dariel.co.za/wp-content/uploads/2024/08/Dariel-Logomark-02.png" alt="Dariel">
+</div>
+
+<div id="nav">
+  <span id="counter">1 / 31</span>
+  <button class="nbtn" id="btn-prev" title="Previous (←)">‹</button>
+  <button class="nbtn" id="btn-next" title="Next (→)">›</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  document.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
+
+  const slides  = Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  const bar     = document.getElementById('progress');
+  let cur = 0;
+
+  function go(n) {
+    slides[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(slides.length - 1, n));
+    slides[cur].classList.add('active');
+    counter.textContent = (cur + 1) + ' / ' + slides.length;
+    bar.style.width = ((cur + 1) / slides.length * 100) + '%';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => go(cur - 1));
+  document.getElementById('btn-next').addEventListener('click', () => go(cur + 1));
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+    if (['ArrowLeft', 'ArrowUp'      ].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End')  go(slides.length - 1);
+  });
+
+  go(0);
+</script>
+</body>
+</html>
