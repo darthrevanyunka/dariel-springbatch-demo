@@ -250,6 +250,56 @@
     .slide.active .anim-4 { animation: fadeUp 0.5s ease 0.35s both; }
     .slide.active .anim-5 { animation: fadeUp 0.5s ease 0.45s both; }
 
+    /* ── SLIDE TRANSITIONS ───────────────────────────────────── */
+    @keyframes exitFwd {
+      from { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+      to   { opacity: 0; transform: translate3d(-100px,0,0) scale(0.92); }
+    }
+    @keyframes enterFwd {
+      from { opacity: 0; transform: translate3d(120px,0,0) scale(1.06); }
+      to   { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+    }
+    @keyframes exitBwd {
+      from { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+      to   { opacity: 0; transform: translate3d(120px,0,0) scale(1.06); }
+    }
+    @keyframes enterBwd {
+      from { opacity: 0; transform: translate3d(-100px,0,0) scale(0.92); }
+      to   { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+    }
+    /* Title "launch" — zoom through on first advance */
+    @keyframes titleLaunch {
+      0%   { opacity: 1; transform: scale(1);    filter: blur(0px); }
+      100% { opacity: 0; transform: scale(1.4);  filter: blur(10px); }
+    }
+    @keyframes enterRise {
+      from { opacity: 0; transform: translateY(50px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)    scale(1); }
+    }
+
+    .slide.exit-fwd    { z-index:1; animation: exitFwd     0.45s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .slide.enter-fwd   { z-index:2; animation: enterFwd    0.45s cubic-bezier(0.4,0,0.2,1) forwards; display:flex !important; }
+    .slide.exit-bwd    { z-index:1; animation: exitBwd     0.45s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .slide.enter-bwd   { z-index:2; animation: enterBwd    0.45s cubic-bezier(0.4,0,0.2,1) forwards; display:flex !important; }
+    .slide.exit-launch { z-index:1; animation: titleLaunch 0.65s cubic-bezier(0.2,0,0.8,1) forwards; }
+    .slide.enter-rise  { z-index:2; animation: enterRise   0.65s cubic-bezier(0.2,0,0.4,1) forwards; display:flex !important; }
+
+    /* ── TITLE CANVAS ────────────────────────────────────────── */
+    #title-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .title-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
     /* ── NAV ────────────────────────────────────────────────── */
     #progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--green); transition: width 0.25s ease; z-index: 50; }
 
@@ -271,20 +321,23 @@
 <!-- 1 · TITLE                                                   -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div class="slide center active">
-  <p class="title-kicker anim-1">Java Guild · 2026</p>
-  <h1 class="anim-2" style="font-size:clamp(2.4rem,6vw,4rem);background:linear-gradient(120deg,var(--text) 40%,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Spring Batch</h1>
-  <p class="subtitle anim-3">A Practical Introduction for Developers</p>
-  <div class="title-rule anim-3"></div>
-  <div class="title-tags anim-4">
-    <span class="title-tag">spring-boot 3.2</span>
-    <span class="title-tag">java 17</span>
-    <span class="title-tag">h2 in-memory db</span>
-  </div>
-  <div class="author-block anim-5">
-    <div class="author-avatar">JR</div>
-    <div class="author-info">
-      <div class="author-name">Jürgen Roos</div>
-      <div class="author-role"><span>OCTO</span> · Dariel</div>
+  <canvas id="title-bg"></canvas>
+  <div class="title-content">
+    <p class="title-kicker anim-1">Java Guild · 2026</p>
+    <h1 class="anim-2" style="font-size:clamp(2.4rem,6vw,4rem);background:linear-gradient(120deg,var(--text) 40%,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Spring Batch</h1>
+    <p class="subtitle anim-3">A Practical Introduction for Developers</p>
+    <div class="title-rule anim-3"></div>
+    <div class="title-tags anim-4">
+      <span class="title-tag">spring-boot 3.2</span>
+      <span class="title-tag">java 17</span>
+      <span class="title-tag">h2 in-memory db</span>
+    </div>
+    <div class="author-block anim-5">
+      <div class="author-avatar">JR</div>
+      <div class="author-info">
+        <div class="author-name">Jürgen Roos</div>
+        <div class="author-role"><span>OCTO</span> · Dariel</div>
+      </div>
     </div>
   </div>
 </div>
