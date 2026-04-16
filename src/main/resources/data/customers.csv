@@ -10000,3 +10000,4 @@ id,firstName,lastName,email,country,purchaseAmount
 9999,chloe,schmidt,chloe.schmidt@example.com,Egypt,980.07
 10000,aria,wilson,aria.wilson@example.com,Vietnam,298.55
 10001,thor,ragnarsson,thor.ragnarsson@example.com,Iceland,850.75
+10002,thor,mark,thor.ragnarsson1@example.com,Atlantis,1234.22
